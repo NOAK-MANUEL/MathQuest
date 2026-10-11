@@ -32,7 +32,7 @@ class GameSounds(context: Context){
     fun playTap() = pool.play(tap,1f,1f,1,0,1f)
     fun playComplete() = pool.play(complete,1f,1f,1,0,1f)
     fun startMusic(){if (!music.isPlaying) music.start()}
-//    fun pauseMusic(){if (music.isPlaying) music.pause()}
+    fun pauseMusic(){if (music.isPlaying) music.pause()}
 
     fun releasePool(){pool.release()}
     fun release(){pool.release(); music.release()}

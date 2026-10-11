@@ -17,7 +17,9 @@ data class ProgressEntity(
 
     val numberGot: Int,
 
-    val timeUsage: Long,
+    val timeUsage: Int,
+
+    val completed: Boolean,
 
     val numberOfTimesTried:Int=1,
 

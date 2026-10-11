@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,26 +36,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.buzigrowth.mathquest.components.AnswerCard
 import com.buzigrowth.mathquest.components.GameSounds
+import com.buzigrowth.mathquest.db.ProgressView
 import com.buzigrowth.mathquest.functions.Question
 import com.buzigrowth.mathquest.functions.generateQuestion
 import com.buzigrowth.mathquest.functions.shake
 import com.buzigrowth.mathquest.properties.LocalNavController
 import com.buzigrowth.mathquest.ui.theme.MathQuestCyan
 import com.buzigrowth.mathquest.ui.theme.MathQuestGreen
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TOTAL_QUESTIONS = 15
 
 @Composable
-fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
+fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: ProgressView= viewModel()) {
     val navigate = LocalNavController.current
     val scope = rememberCoroutineScope()
     val offsetX = remember { Animatable(0f) }
 
+    val seconds = remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true){
+            delay(1000.milliseconds)
+            seconds.intValue++
+        }
+
+    }
+
     // Real state that survives recomposition
     val questionsAsked = remember { mutableStateListOf<Question>() }
-    val userAnswers = remember { mutableStateListOf<Int>() }
+    val userAnswers = remember { mutableStateListOf<UserAnswer>() }
 
     fun nextUniqueQuestion(): Question {
         var q = generateQuestion(level)
@@ -91,7 +107,7 @@ fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
             Spacer(Modifier.weight(1f))
             Icon(Icons.Filled.Timer, contentDescription = "clock")
             Spacer(Modifier.width(4.dp))
-            Text("00:00", style = MaterialTheme.typography.titleMedium)
+            Text("%02d:%02d".format(seconds.intValue/60,seconds.intValue%60), style = MaterialTheme.typography.titleMedium)
         }
 
         // Question
@@ -111,7 +127,7 @@ fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
             options.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     rowItems.forEach { value ->
-                        AnswerCard(
+                        AnswerCard (
                             value = value,
                             isSelected = selected.value,
                             selectedStatus = isCorrect,
@@ -123,7 +139,7 @@ fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
                                 },
                             onClick = {
                                 selected.value = value
-                                userAnswers.add(value)
+                                userAnswers.add(UserAnswer(answer = value, correct = question.answer == value))
                                 if (value != question.answer){
                                     sounds.playWrong()
                                     shake(scope, offsetX)
@@ -145,7 +161,7 @@ fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
                 onClick = {
                     sounds.playTap()
                     navigate.popBackStack() },
-                modifier = Modifier.weight(1f).padding(20.dp)
+                modifier = Modifier.height(20.dp)
             ) { Text("Quit") }
 
             ElevatedButton(
@@ -154,40 +170,31 @@ fun Game(sounds: GameSounds,modifier: Modifier = Modifier, level: Int) {
                     if (questionsAsked.size < TOTAL_QUESTIONS) {
                         questionsAsked.add(nextUniqueQuestion())
                     } else {
+                        sounds.playComplete()
+                        var correctCount =0
+                        userAnswers.forEach { ans->
+                            if (ans.correct) correctCount++
+                        }
+                        val stars = if (correctCount<5) 0 else (correctCount/5)
+                        pv.completeLevel(level = level, stars = stars, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = stars !=0 ,timeUsage = seconds.intValue)
+                        if (stars==0){
+                            navigate.navigate("fail/$level",{
+                                popUpTo("game/$level") { inclusive=true }
+                            })
 
-                        navigate.navigate("complete/$level")
+                        }else{
+                            navigate.navigate("complete/$level",{
+                                popUpTo("game/${level}") {inclusive=true  }
+                            })
+
+                        }
                     }
                 },
                 enabled = selected.value != null,   // only advance after a correct answer
-                modifier = Modifier.weight(1f).padding(20.dp)
+                modifier = Modifier.height(20.dp)
             ) {
                 Text(if (questionsAsked.size < TOTAL_QUESTIONS) "Next" else "Finish")
             }
-        }
-    }
-}
-@Composable
-private fun AnswerCard(
-    value: Int,
-    isSelected: Int?,
-    selectedStatus: Boolean?,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .height(72.dp)
-            .clickable(onClick = onClick, enabled = isSelected == null),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected == value) {
-                if (selectedStatus != null && selectedStatus ){
-                    MathQuestGreen
-                }else Color.Red
-            }else MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(value.toString(), fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -205,3 +212,8 @@ private fun generateOption(correct:Int): List<Int>{
 
     return options.shuffled()
 }
+
+private data class UserAnswer(
+    val answer: Int,
+    val correct: Boolean
+)
