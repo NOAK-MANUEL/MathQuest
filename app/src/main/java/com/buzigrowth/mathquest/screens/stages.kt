@@ -1,6 +1,5 @@
 package com.buzigrowth.mathquest.screens
 
-import android.widget.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +35,7 @@ fun Stages(modifier: Modifier= Modifier, pv: ProgressView= viewModel(),sounds: G
     val progress=pv.progress.collectAsState()
     Column(modifier = modifier.fillMaxSize().padding(15.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(2.dp), horizontalArrangement = Arrangement.Center) {
-            Text("Select Level", fontSize = 20.sp, )
+            Text("Select Level", fontSize = 20.sp )
             Spacer(Modifier.weight(1f))
             Row(horizontalArrangement = Arrangement.Center) {
                 Text(progress.value.sumOf { it.stars  }.toString())

@@ -45,11 +45,11 @@ fun AppLayout(sounds: GameSounds){
                     Game(sounds=sounds, modifier = Modifier.padding(innerPadding),level)
                 }
 
-                composable("complete/{level}", arguments = listOf(navArgument("level"){ NavType.IntType})) { params->
+                composable("complete/{level}", arguments = listOf(navArgument("level"){type= NavType.IntType})) { params->
                     val level = params.arguments?.getInt("level")?:1
                     StageComplete(modifier = Modifier.padding(innerPadding), level = level)
                 }
-                composable("fail/{level}", arguments = listOf(navArgument("level"){ NavType.IntType})) { params->
+                composable("fail/{level}", arguments = listOf(navArgument("level"){type= NavType.IntType})) { params->
                     val level = params.arguments?.getInt("level")?:1
                     StageFailed(modifier = Modifier.padding(innerPadding), level = level)
                 }

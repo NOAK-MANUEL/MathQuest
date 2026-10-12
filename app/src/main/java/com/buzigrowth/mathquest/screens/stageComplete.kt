@@ -18,32 +18,45 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Score
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.buzigrowth.mathquest.db.ProgressEntity
 import com.buzigrowth.mathquest.db.ProgressView
 import com.buzigrowth.mathquest.properties.LocalNavController
+import com.buzigrowth.mathquest.ui.theme.MathQuestPurple
 import com.buzigrowth.mathquest.ui.theme.MathQuestYellow
 
 @Composable
 fun StageComplete(modifier: Modifier = Modifier, level: Int,pv: ProgressView= viewModel()) {
     val navigate = LocalNavController.current
-   val stage =pv.getLevel(level)
-    if (stage==null){
+   val stageState= remember {
+       mutableStateOf<ProgressEntity?>(null)}
+    LaunchedEffect(level) {
+        stageState.value =     pv.getLevel(level)
+
+    }
+
+    if (stageState.value==null){
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
+    val stage = stageState.value
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -85,6 +98,9 @@ fun StageComplete(modifier: Modifier = Modifier, level: Int,pv: ProgressView= vi
         Spacer(Modifier.height(32.dp))
 
         Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MathQuestPurple
+            ),
             onClick = {
                 navigate.popBackStack()
             },

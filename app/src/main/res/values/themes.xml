@@ -4,7 +4,7 @@
     <style name="Theme.MathQuest" parent="android:Theme.Material.Light.NoActionBar" />
     <style name="Theme.MathQuest.Splash" parent="Theme.SplashScreen" >
         <item name="windowSplashScreenBackground">@color/black</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/logo_round</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/logo</item>
         <item name="postSplashScreenTheme">@style/Theme.MathQuest</item>
     </style>
 

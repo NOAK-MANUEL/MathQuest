@@ -1,7 +1,6 @@
 package com.buzigrowth.mathquest.screens
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -44,9 +45,9 @@ import com.buzigrowth.mathquest.functions.Question
 import com.buzigrowth.mathquest.functions.generateQuestion
 import com.buzigrowth.mathquest.functions.shake
 import com.buzigrowth.mathquest.properties.LocalNavController
-import com.buzigrowth.mathquest.ui.theme.MathQuestCyan
-import com.buzigrowth.mathquest.ui.theme.MathQuestGreen
+import com.buzigrowth.mathquest.ui.theme.MathQuestDeepBlue
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -73,7 +74,7 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
     val userAnswers = remember { mutableStateListOf<UserAnswer>() }
 
     fun nextUniqueQuestion(): Question {
-        var q = generateQuestion(level)
+        var q = generateQuestion(level, mode = questionsAsked.size/5)
         var attempts = 0
         while (q in questionsAsked && attempts++ < 50) {   // guard against infinite loop
             q = generateQuestion(level)
@@ -114,12 +115,22 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(vertical = 24.dp)
+                .weight(0.5f)
+                .padding(vertical = 24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MathQuestDeepBlue
+            )
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("${question.text} = ?", fontSize = 40.sp, fontWeight = FontWeight.Bold)
-            }
+                Text(
+                    "${question.text} = ?",
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 40.sp,
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    )
+                )            }
         }
 
         // Options
@@ -175,17 +186,20 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                         userAnswers.forEach { ans->
                             if (ans.correct) correctCount++
                         }
-                        val stars = if (correctCount<5) 0 else (correctCount/5)
-                        pv.completeLevel(level = level, stars = stars, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = stars !=0 ,timeUsage = seconds.intValue)
-                        if (stars==0){
-                            navigate.navigate("fail/$level",{
-                                popUpTo("game/$level") { inclusive=true }
-                            })
+                        scope.launch {
+                            val stars = if (correctCount<5) 0 else (correctCount/5)
 
-                        }else{
-                            navigate.navigate("complete/$level",{
-                                popUpTo("game/${level}") {inclusive=true  }
-                            })
+                            pv.completeLevel(level = level, stars = stars, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = stars !=0 ,timeUsage = seconds.intValue)
+                            if (stars<1){
+                                navigate.navigate("fail/$level",{
+                                    popUpTo("game/$level") { inclusive=true }
+                                })
+
+                            }else {
+                                navigate.navigate("complete/$level", {
+                                    popUpTo("game/${level}") { inclusive = true }
+                                })
+                        }
 
                         }
                     }

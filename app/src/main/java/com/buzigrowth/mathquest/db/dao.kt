@@ -15,7 +15,7 @@ interface ProgressDao {
     suspend fun getAllProgress(): List<ProgressEntity>
 
     @Query("SELECT * FROM progress WHERE level = :level")
-     fun getByLevel(level: Int): ProgressEntity?
+     suspend fun getByLevel(level: Int): ProgressEntity?
 
     @Update
     suspend fun updateProgress(progress: ProgressEntity)

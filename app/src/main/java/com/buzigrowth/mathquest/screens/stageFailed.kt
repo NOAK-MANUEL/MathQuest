@@ -1,6 +1,7 @@
 package com.buzigrowth.mathquest.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,30 +13,49 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Score
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.buzigrowth.mathquest.db.ProgressEntity
 import com.buzigrowth.mathquest.db.ProgressView
 import com.buzigrowth.mathquest.properties.LocalNavController
-import com.buzigrowth.mathquest.ui.theme.MathQuestCyan
+import com.buzigrowth.mathquest.ui.theme.MathQuestDeepBlue
 import com.buzigrowth.mathquest.ui.theme.MathQuestYellow
 
 @Composable
 fun StageFailed(modifier: Modifier = Modifier, level: Int,pv: ProgressView= viewModel()) {
     val navigate = LocalNavController.current
-//   val pr pv.getLevel(level)
+    val stageState= remember {
+        mutableStateOf<ProgressEntity?>(null)}
+    LaunchedEffect(level) {
+        stageState.value =     pv.getLevel(level)
+
+    }
+
+    if (stageState.value==null){
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MathQuestDeepBlue, modifier = Modifier.size(60.dp))
+        }
+        return
+    }
+    val stage = stageState.value
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -68,8 +88,9 @@ fun StageFailed(modifier: Modifier = Modifier, level: Int,pv: ProgressView= view
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                StatRow(Icons.Filled.Timer, "Time", "20:20")
-                StatRow(Icons.Filled.Score, "Score", "10/15")
+                StatRow(Icons.Filled.Timer, "Time", "%02d:%02d".format(stage!!.timeUsage/60, stage.timeUsage%60))
+                StatRow(Icons.Filled.Score, "Score", "${stage.numberGot}/${stage.numberGot+stage.numberFailed}")
+                StatRow(Icons.Filled.Numbers, "Tried Cound", "${stage.numberOfTimesTried}")
             }
         }
 

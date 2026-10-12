@@ -64,7 +64,7 @@ fun StagesCard(
                     1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f), shape
                 )
             )
-            .clickable(enabled = unlocked) {
+            .clickable {
                 sounds.playTap()
                 navController.navigate("game/$stage")
             }
