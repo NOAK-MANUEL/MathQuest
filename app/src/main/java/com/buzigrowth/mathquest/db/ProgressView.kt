@@ -25,10 +25,10 @@ class ProgressView(app: Application): AndroidViewModel(app) {
     suspend fun getLevel(level: Int): ProgressEntity? =  dao.getByLevel(level)
 
 
-   suspend fun completeLevel(level:Int, stars:Int, numberGot:Int, numberFailed:Int,timeUsage: Int,completed: Boolean) = viewModelScope.launch {
+   fun completeLevel(level:Int, stars:Int, numberGot:Int, numberFailed:Int,timeUsage: Int,mode: Mode,completed: Boolean) = viewModelScope.launch {
         val existing = dao.getByLevel(level)
         if (existing==null){
-            dao.insert(progress = ProgressEntity(level = level, stars = stars, numberGot = numberGot, numberFailed = numberFailed, timeUsage = timeUsage, completed = completed))
+            dao.insert(progress = ProgressEntity(level = level, stars = stars, numberGot = numberGot, numberFailed = numberFailed, timeUsage = timeUsage, mode = mode, completed = completed))
         }else{
             dao.updateProgress(existing.copy(stars = stars, numberFailed = numberFailed, numberGot = numberGot, timeUsage = timeUsage, completed = completed,numberOfTimesTried = existing.numberOfTimesTried+1))
         }

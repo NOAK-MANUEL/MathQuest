@@ -3,6 +3,12 @@ package com.buzigrowth.mathquest.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+enum class Mode{
+    FRESH,
+    BLAZING,
+    CRAZY
+}
+
 @Entity(tableName = "progress")
 data class ProgressEntity(
     @PrimaryKey(autoGenerate = true)
@@ -18,6 +24,8 @@ data class ProgressEntity(
     val numberGot: Int,
 
     val timeUsage: Int,
+
+    val mode: Mode ,
 
     val completed: Boolean,
 

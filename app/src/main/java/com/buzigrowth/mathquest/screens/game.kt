@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
@@ -32,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +37,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.buzigrowth.mathquest.components.AnswerCard
 import com.buzigrowth.mathquest.components.GameSounds
+import com.buzigrowth.mathquest.db.Mode
 import com.buzigrowth.mathquest.db.ProgressView
 import com.buzigrowth.mathquest.functions.Question
 import com.buzigrowth.mathquest.functions.generateQuestion
@@ -61,15 +60,31 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
     val scope = rememberCoroutineScope()
     val offsetX = remember { Animatable(0f) }
 
-    val seconds = remember { mutableIntStateOf(0) }
+    val mode = when{
+        level/9 >= 2 -> Mode.CRAZY
+        level/9 >= 1 -> Mode.BLAZING
+        else ->Mode.FRESH
+    }
+
+    val seconds = remember { mutableIntStateOf(if (mode == Mode.FRESH)0 else if(mode== Mode.BLAZING)60*10 else 60*5 ) }
 
     LaunchedEffect(Unit) {
         while (true){
             delay(1000.milliseconds)
-            seconds.intValue++
+
+            if (mode == Mode.FRESH){
+                seconds.intValue++
+
+            }else {
+                if (seconds.intValue<= 0){
+
+                }
+                seconds.intValue--
+            }
         }
 
     }
+
 
     // Real state that survives recomposition
     val questionsAsked = remember { mutableStateListOf<Question>() }
@@ -192,7 +207,7 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                         scope.launch {
                             val stars = if (correctCount<5) 0 else (correctCount/5)
 
-                            pv.completeLevel(level = level, stars = stars, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = stars !=0 ,timeUsage = seconds.intValue)
+                            pv.completeLevel(level = level, stars = stars, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = stars !=0 ,timeUsage = seconds.intValue, mode = mode )
                             if (stars<1){
                                 navigate.navigate("fail/$level",{
                                     popUpTo("game/$level") { inclusive=true }
@@ -215,6 +230,10 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
         }
 
     }
+}
+
+private fun endGame(correctCount: Int,pv: ProgressView,navigate: NavHostController,){
+
 }
 
 private fun generateOption(correct:Int): List<Int>{
