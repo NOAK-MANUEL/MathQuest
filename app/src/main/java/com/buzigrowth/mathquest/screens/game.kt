@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
@@ -114,8 +116,7 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
         // Question
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.5f)
+                .fillMaxWidth().weight(1f)
                 .padding(vertical = 24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MathQuestDeepBlue
@@ -132,6 +133,8 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                     )
                 )            }
         }
+
+//        Spacer(Modifier.height(10.dp))
 
         // Options
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -172,7 +175,7 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                 onClick = {
                     sounds.playTap()
                     navigate.popBackStack() },
-                modifier = Modifier.height(20.dp)
+                modifier = Modifier.weight(1f)
             ) { Text("Quit") }
 
             ElevatedButton(
@@ -205,11 +208,12 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                     }
                 },
                 enabled = selected.value != null,   // only advance after a correct answer
-                modifier = Modifier.height(20.dp)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(if (questionsAsked.size < TOTAL_QUESTIONS) "Next" else "Finish")
             }
         }
+
     }
 }
 
