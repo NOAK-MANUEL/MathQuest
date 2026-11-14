@@ -13,12 +13,12 @@ import com.buzigrowth.mathquest.ui.theme.MathQuestTheme
 class MainActivity : ComponentActivity() {
     private lateinit var sounds: GameSounds
     override fun onPause() {
-        sounds.pauseMusic()
+        sounds.pauseIntroMusic()
         super.onPause()
     }
 
     override fun onResume() {
-        sounds.startMusic()
+        sounds.startIntroMusic()
         super.onResume()
     }
 

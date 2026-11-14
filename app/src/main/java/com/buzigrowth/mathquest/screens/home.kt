@@ -110,24 +110,24 @@ fun Home(sounds: GameSounds,modifier: Modifier= Modifier){
         Spacer(modifier = Modifier.height(20.dp))
 
 
-        Row(horizontalArrangement = Arrangement.SpaceBetween) {
-
-            Column(verticalArrangement = Arrangement.SpaceBetween) {
-                IconButton(onClick = {}) {
-                    Icon(imageVector = Icons.Filled.QueryStats, contentDescription = "Stats")
-                }
-
-                Text("Stats")
-            }
-
-            Column(verticalArrangement = Arrangement.SpaceBetween) {
-                IconButton(onClick = {}) {
-                    Icon(imageVector = Icons.Filled.Info, contentDescription = "Info")
-                }
-                Text("About")
-
-            }
-        }
+//        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+//
+//            Column(verticalArrangement = Arrangement.SpaceBetween) {
+//                IconButton(onClick = {}) {
+//                    Icon(imageVector = Icons.Filled.QueryStats, contentDescription = "Stats")
+//                }
+//
+//                Text("Stats")
+//            }
+//
+//            Column(verticalArrangement = Arrangement.SpaceBetween) {
+//                IconButton(onClick = {}) {
+//                    Icon(imageVector = Icons.Filled.Info, contentDescription = "Info")
+//                }
+//                Text("About")
+//
+//            }
+//        }
 
     }
 }

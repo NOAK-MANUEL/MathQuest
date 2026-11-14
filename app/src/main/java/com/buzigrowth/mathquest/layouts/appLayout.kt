@@ -24,7 +24,7 @@ import com.buzigrowth.mathquest.screens.Stages
 fun AppLayout(sounds: GameSounds){
     val navController = rememberNavController()
     DisposableEffect(Unit) {
-        sounds.startMusic()
+        sounds.startIntroMusic()
         onDispose { sounds.release() }
     }
     CompositionLocalProvider(

@@ -15,7 +15,15 @@ fun generateQuestion(level: Int,mode:Int=0): Question {
 
     return when (stage % 3) {
         1 -> Question(values.joinToString(" + "), values.reduce { a, i -> a+i })
-        2 -> Question(values.joinToString(" - "), values.reduce { acc, i -> acc-i  })
+        2 -> {
+            val sorted = values.sortedDescending()
+            var acc = sorted.first()
+            val used = mutableListOf(acc)
+            for (n in sorted.drop(1)) {
+                if (acc - n >= 0) { acc -= n; used.add(n) }
+            }
+            Question(used.joinToString(" - "), acc)
+        }
         else -> Question(values.joinToString(" * "),values.reduce { i, acc -> i*acc })
     }
 }

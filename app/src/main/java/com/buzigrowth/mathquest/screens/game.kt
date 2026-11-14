@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +53,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private const val TOTAL_QUESTIONS = 15
 
@@ -61,34 +64,49 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
     val offsetX = remember { Animatable(0f) }
 
     val mode = when{
-        level/9 >= 2 -> Mode.CRAZY
-        level/9 >= 1 -> Mode.BLAZING
+        level+1/9 >= 2 -> Mode.CRAZY
+        level+1/9 >= 1 -> Mode.BLAZING
         else ->Mode.FRESH
     }
 
-    val seconds = remember { mutableIntStateOf(if (mode == Mode.FRESH)0 else if(mode== Mode.BLAZING)60*10 else 60*5 ) }
-
-    LaunchedEffect(Unit) {
-        while (true){
-            delay(1000.milliseconds)
-
-            if (mode == Mode.FRESH){
-                seconds.intValue++
-
-            }else {
-                if (seconds.intValue<= 0){
-
-                }
-                seconds.intValue--
-            }
-        }
-
-    }
-
+    val seconds = remember { mutableIntStateOf(if (mode == Mode.FRESH)0 else if(mode== Mode.BLAZING)60*5 else 60*3 ) }
 
     // Real state that survives recomposition
     val questionsAsked = remember { mutableStateListOf<Question>() }
     val userAnswers = remember { mutableStateListOf<UserAnswer>() }
+
+    LaunchedEffect(Unit) {
+        if (mode != Mode.FRESH) sounds.startStageMusic()
+
+
+        while (true) {
+            delay(1000.milliseconds)
+            if (mode == Mode.FRESH) {
+                seconds.intValue++
+            } else {
+                if (seconds.intValue <= 0) {
+                    sounds.pauseStageMusic()
+                    scope.launch {
+                        val correctCount =userAnswers.filter { it.correct }.size
+
+
+                        pv.completeLevel(level = level, stars = 0, numberGot = correctCount, numberFailed = userAnswers.size-correctCount, completed = false ,timeUsage = seconds.intValue, mode = mode )
+                        navigate.navigate("fail/$level") {
+                            popUpTo("game/$level") { inclusive = true }
+                        }
+                    }
+
+                    break
+                }
+                seconds.intValue--
+                if (seconds.intValue <= 60) {
+                    sounds.playBeep()
+                }
+            }
+        }
+    }
+
+
 
     fun nextUniqueQuestion(): Question {
         var q = generateQuestion(level, mode = questionsAsked.size/5)
@@ -110,6 +128,15 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
     val options = remember(question) { generateOption(question.answer) }
     val selected = remember(question) { mutableStateOf<Int?>(null) }
     val isCorrect = selected.value == question.answer
+    DisposableEffect(Unit) {
+        onDispose {
+            if (mode != Mode.FRESH){
+                sounds.pauseStageMusic()
+                sounds.startIntroMusic()
+            }
+
+        }
+    }
 
     Column(
         modifier = modifier
@@ -125,7 +152,7 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
             Spacer(Modifier.weight(1f))
             Icon(Icons.Filled.Timer, contentDescription = "clock")
             Spacer(Modifier.width(4.dp))
-            Text("%02d:%02d".format(seconds.intValue/60,seconds.intValue%60), style = MaterialTheme.typography.titleMedium)
+            Text("%02d:%02d".format(seconds.intValue/60,seconds.intValue%60), style = MaterialTheme.typography.titleMedium, color = if(seconds.intValue < 60) Color.Red else Color.White)
         }
 
         // Question
@@ -200,10 +227,8 @@ fun Game(sounds: GameSounds, modifier: Modifier = Modifier, level: Int, pv: Prog
                         questionsAsked.add(nextUniqueQuestion())
                     } else {
                         sounds.playComplete()
-                        var correctCount =0
-                        userAnswers.forEach { ans->
-                            if (ans.correct) correctCount++
-                        }
+                        val correctCount =userAnswers.filter { it.correct }.size
+
                         scope.launch {
                             val stars = if (correctCount<5) 0 else (correctCount/5)
 
@@ -236,20 +261,16 @@ private fun endGame(correctCount: Int,pv: ProgressView,navigate: NavHostControll
 
 }
 
-private fun generateOption(correct:Int): List<Int>{
-    var options = listOf(correct)
-    while(options.size <4) {
-        val random = Math.random() * (correct+3+Math.random())
-        val value = random.toInt()
-        if (!options.contains(value)){
-            options = options+value
-        }
-
+fun generateOption(answer: Int): List<Int> {
+    val options = mutableSetOf(answer)
+    var offset = 1
+    while (options.size < 4) {
+        if (answer + offset >= 0) options.add(answer + offset)
+        if (options.size < 4 && answer - offset >= 0) options.add(answer - offset)
+        offset++
     }
-
     return options.shuffled()
 }
-
 private data class UserAnswer(
     val answer: Int,
     val correct: Boolean
