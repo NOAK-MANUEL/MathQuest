@@ -14,7 +14,7 @@ import com.buzigrowth.mathquest.db.ProgressEntity
 fun StagesGrid( progress: State<List<ProgressEntity>>,sounds: GameSounds){
 
     LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp) ) {
-        items(30){index->
+        items(27){index->
             StagesCard(index+1, sounds = sounds ,progress = progress.value.find { it.level==index+1 }, completedCount = progress.value.filter { it.completed }.size )
 
         }
